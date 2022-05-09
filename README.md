@@ -12,9 +12,7 @@ Can reset password via sending e-mail.
 Add 2FA as an option.
 
 ## Tech
- - Heroku for remote database connection (likely in PostgreSQL but might use something I'm less familiar with)
- - Python backend, likely Flask.
- - Simple frontend, likely a combination of JS + Bootstrap + HTML templating.
+ - Built with Python and Flask, utilizing Flasks ability to run templates.
 
 ## Reason For This Project
 I'd like to mess around with Python a little bit while staying within my comfort zone.
