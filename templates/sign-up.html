@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="eng">
+<head>
+	<title>Sign Up Page</title>
+</head>
+<body>
+	<form action="" method="post">
+		<label for="user2">Username:</label><br>
+		<input type="text" id="user2" name="user2"><br>
+		<label for="pwnew">Password:</label><br>
+		<input type="password" id="pwnew" name="pwnew"><br>
+		<label for="pw2">Re-enter Password:</label><br>
+		<input type="password" ud="pw2" name="pw2"><br>
+		<input type="submit" value="Sign Up!" formmethod="post"><br>
+	</form>
+	{% if error %}
+	<p style="color: red;"> {{ error }}</p>
+	{% endif %} 
+	<p>Username must range from 5-16 characters in length.</p>
+	<p>Password must range from 8-16 characters in length.</p>
+	<p>Passwords require at least 1 (one) letter, number, and symbol.</p>
+	<p>Usernames may not include non-alphanumeric characters.</p>
+</body>
+</html>
