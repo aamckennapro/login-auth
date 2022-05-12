@@ -4,6 +4,9 @@ from flask import render_template
 from markupsafe import escape
 from connect import login_attempt
 from connect import sign_up_attempt
+from connect import auth_attempt
+from authentication import generate_token
+from authentication import send_email
 import re
 
 app = Flask(__name__)
@@ -17,10 +20,8 @@ def login():
 	if request.method == 'POST':
 		user = request.form['user']
 		pw = request.form['pw']
-		print("Woo!")
 		return do_the_login(user, pw)
 	else:
-		print("Boo!")
 		return show_login_form()
 
 @app.route('/sign-up', methods=['GET', 'POST'])
@@ -29,22 +30,43 @@ def signup():
 		user = request.form['user2']
 		pw = request.form['pwnew']
 		pw2 = request.form['pw2']
-		return do_the_sign_up(user, pw, pw2)
+		email = request.form['email']
+		return do_the_sign_up(user, pw, pw2, email)
 	else:
 		return show_sign_up_form()
+
+@app.route('/auth/<user>', method=['GET', 'POST'])
+def auth_user(user):
+	if request.method == 'POST':
+		auth = request.form['auth']
+		return do_the_auth(user, auth)
+	else:
+		return show_auth_form(user)
+
+def do_the_auth(username, auth_code):
+	auth = auth_attempt(username, auth_code)
+	if auth:
+		print('Authenticated.')
+		return render_template('user.html', name=username)
+	else:
+		error = 'Authentication failed. A new authentication code has been sent to your e-mail address.'
+		send_email(username)
+		return render_template('auth.html', user=username, error=error)
+
 
 def do_the_login(user, pw):
 	login = login_attempt(user, pw)
 	print(login)
 	if login:
 		print('Login is a go!')
-		return render_template('user.html', name=user)
+		send_email(user)
+		return render_template('auth.html', user=user)
 	else:
 		error = 'Invalid username/password. Please try again.'
 		print(error)
 		return render_template('login.html', error=error)
 
-def do_the_sign_up(user, pw, pw2):
+def do_the_sign_up(user, pw, pw2, email):
 	if pw != pw2:
 		error = 'Passwords must match.'
 		return render_template('sign-up.html', error=error)
@@ -73,12 +95,12 @@ def do_the_sign_up(user, pw, pw2):
 			error = 'Username may not include any non-alphanumeric characters.'
 			return render_template('sign-up.html', error=error)
 
-		sign = sign_up_attempt(user, pw)
+		sign = sign_up_attempt(user, pw, email)
 		if sign:
 			print('Sign up is a go!')
 			return render_template('user.html', name=user)
 		else:
-			error = 'That username is already taken.'
+			error = 'That username/email is already taken.'
 			return render_template('sign-up.html', error=error)
 
 def show_login_form():
@@ -86,6 +108,9 @@ def show_login_form():
 
 def show_sign_up_form():
 	return render_template('sign-up.html')
+
+def show_auth_form(user):
+	return render_template('auth.html', user=user)
 
 def char_search_in_string(pw):
 	search = re.search('[A-Za-z]+', pw)
