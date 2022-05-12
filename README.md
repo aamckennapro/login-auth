@@ -10,6 +10,7 @@ If authentication fails, user is prompted to try again.
 Ability to sign up via e-mail, maybe even using Google. 
 Can reset password via sending e-mail.
 Add 2FA as an option.
+Currently storing passwords in an unsafe manner (not salted, not hashed). Store passwords salted and hashed.
 
 ## Tech
  - Built with Python and Flask, utilizing Flasks ability to run templates.
