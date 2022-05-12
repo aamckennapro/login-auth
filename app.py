@@ -1,12 +1,14 @@
 from flask import Flask
 from flask import request
 from flask import render_template
+from flask import redirect
+from flask import url_for
 from markupsafe import escape
 from connect import login_attempt
 from connect import sign_up_attempt
 from connect import auth_attempt
 from authentication import generate_token
-from authentication import send_email
+from sender import send_email
 import re
 
 app = Flask(__name__)
@@ -35,7 +37,7 @@ def signup():
 	else:
 		return show_sign_up_form()
 
-@app.route('/auth/<user>', method=['GET', 'POST'])
+@app.route('/auth/<user>', methods=['GET', 'POST'])
 def auth_user(user):
 	if request.method == 'POST':
 		auth = request.form['auth']
@@ -43,11 +45,16 @@ def auth_user(user):
 	else:
 		return show_auth_form(user)
 
+@app.route('/user/<user>', methods=['GET'])
+def user(user):
+	return render_template('user.html', name=user)
+
+
 def do_the_auth(username, auth_code):
 	auth = auth_attempt(username, auth_code)
 	if auth:
 		print('Authenticated.')
-		return render_template('user.html', name=username)
+		return redirect(url_for('user', user=username))
 	else:
 		error = 'Authentication failed. A new authentication code has been sent to your e-mail address.'
 		send_email(username)
@@ -60,7 +67,7 @@ def do_the_login(user, pw):
 	if login:
 		print('Login is a go!')
 		send_email(user)
-		return render_template('auth.html', user=user)
+		return redirect(url_for('auth_user', user=user))
 	else:
 		error = 'Invalid username/password. Please try again.'
 		print(error)
@@ -98,7 +105,7 @@ def do_the_sign_up(user, pw, pw2, email):
 		sign = sign_up_attempt(user, pw, email)
 		if sign:
 			print('Sign up is a go!')
-			return render_template('user.html', name=user)
+			return redirect(url_for('login'))
 		else:
 			error = 'That username/email is already taken.'
 			return render_template('sign-up.html', error=error)

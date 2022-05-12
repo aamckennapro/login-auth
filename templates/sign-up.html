@@ -6,13 +6,13 @@
 <body>
 	<form action="" method="post">
 		<label for="user2">Username:</label><br>
-		<input type="text" id="user2" name="user2"><br>
+		<input type="text" id="user2" name="user2" maxlength="16"><br>
 		<label for="email">Email Address:</label><br>
 		<input type="text" id="email" name="email"><br>
 		<label for="pwnew">Password:</label><br>
-		<input type="password" id="pwnew" name="pwnew"><br>
+		<input type="password" id="pwnew" name="pwnew" maxlength="16"><br>
 		<label for="pw2">Re-enter Password:</label><br>
-		<input type="password" ud="pw2" name="pw2"><br>
+		<input type="password" ud="pw2" name="pw2" maxlength="16"><br>
 		<input type="submit" value="Sign Up!" formmethod="post"><br>
 	</form>
 	{% if error %}

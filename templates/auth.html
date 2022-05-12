@@ -6,9 +6,9 @@
 <body>
 	<form action="" method="post">
 		<label for="user">Username: </label><br>
-		<p style="color: green;"> {{ user }} </p>
+		<p id="user" name="user" style="color: green;"> {{ user }} </p>
 		<label for="auth">6-Character Authentication Code: </label><br>
-		<input type="password" id="auth" name="auth"><br>
+		<input type="text" id="auth" name="auth" maxlength="6"><br>
 		<input type="submit" value="Submit" formmethod="post"><br>
 	</form>
 	{% if error %}

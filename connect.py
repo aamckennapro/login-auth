@@ -57,7 +57,7 @@ def login(attempt, username):
 def sign_up_attempt(username, password, email):
 	conn = None
 	user = None
-	email = None
+	email_check = None
 	code = None
 	try:
 		params = config()
@@ -68,22 +68,23 @@ def sign_up_attempt(username, password, email):
 		cur.execute('SELECT username FROM login WHERE username=\'{0}\';'.format(username))
 		user = cur.fetchone()
 		cur.execute('SELECT email FROM login WHERE email=\'{0}\';'.format(email))
-		email = cur.fetchone()
+		email_check = cur.fetchone()
 
-		if user == None:
+		if user != None:
 			cur.close()
 			conn.close()
 			print('Database connection closed.')
 			return False
 
-		else if email == None:
+		elif email_check != None:
 			cur.close()
 			conn.close()
 			print('Database connection closed.')
 			return False
 
 		else:
-			cur.execute('INSERT INTO login (username, password, email) VALUES (\'{0}\', \'{1}\');'.format(username, password, email))
+			#print(username, password, email)
+			cur.execute('INSERT INTO login (username, password, email) VALUES (\'{0}\', \'{1}\', \'{2}\');'.format(username, password, email))
 			conn.commit()
 			code = generate_token()
 			cur.execute('INSERT INTO auth (username, auth_code) VALUES (\'{0}\', \'{1}\');'.format(username, code))
@@ -143,7 +144,7 @@ def fetch_auth_code(username):
 			return None
 
 		else:
-			return auth_code
+			return auth_code[0]
 	except (Exception, psycopg2.DatabaseError) as error:
 		print(error)
 	else:
@@ -159,10 +160,10 @@ def auth_attempt(username, code):
 		conn = psycopg2.connect(**params)
 
 		cur = conn.cursor()
-		cur.execute('SELECT auth_code FROM login WHERE username=\'{0}\';'.format(username))
+		cur.execute('SELECT auth_code FROM auth WHERE username=\'{0}\';'.format(username))
 		auth_code = cur.fetchone()
 
-		if auth_code == None:
+		if auth_code[0] == None:
 			cur.execute('DELETE FROM auth WHERE username=\'{0}\';'.format(username))
 			conn.commit()
 			new_code = generate_token()
@@ -170,7 +171,7 @@ def auth_attempt(username, code):
 			conn.commit()
 			return False
 
-		elif auth_code != code:
+		elif auth_code[0] != code:
 			cur.execute('DELETE FROM auth WHERE username=\'{0}\';'.format(username))
 			conn.commit()
 			new_code = generate_token()
