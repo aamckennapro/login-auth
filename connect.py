@@ -170,7 +170,7 @@ def auth_attempt(username, code):
 			conn.commit()
 			return False
 
-		else if auth_code != code:
+		elif auth_code != code:
 			cur.execute('DELETE FROM auth WHERE username=\'{0}\';'.format(username))
 			conn.commit()
 			new_code = generate_token()
