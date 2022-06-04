@@ -7,6 +7,6 @@ def generate_token():
 	return token
 
 def grind_salt():
-	alphabet = string.ascii_letters + string.fixed_digits
+	alphabet = string.ascii_letters + string.digits
 	salt_str = ''.join(secrets.choice(alphabet) for i in range(16))
 	return salt_str
