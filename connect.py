@@ -19,7 +19,9 @@ def login_attempt(username, password):
 		cur.execute('SELECT salt_str FROM auth where username=\'{0}\';'.format(username))
 		salt_str = cur.fetchone()
 
-		pass_try = whirlpool.new(password + salt_str[0])
+		pass_raw = b"{0}{1}".format(password, salt_str[0])
+
+		pass_try = whirlpool.new(pass_raw)
 		pass_resolve = pass_try.hexdigest()
 		print(pass_resolve)
 
@@ -103,7 +105,9 @@ def sign_up_attempt(username, password, email):
 				cur.execute('INSERT INTO auth (salt_str) VALUES (\'{0}\');'.format(salt))
 				conn.commit()
 
-			hasher = whirlpool.new(password + salt)
+			pass_raw = b"{0}{1}".format(password, salt)
+
+			hasher = whirlpool.new(pass_raw)
 			hasher_digest = hasher.hexdigest()
 			print(hasher_digest)
 
