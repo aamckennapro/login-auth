@@ -1,6 +1,8 @@
 import psycopg2
+import whirlpool
 from config import config
 from authentication import generate_token
+from authentication import grind_salt
 
 def login_attempt(username, password):
 	conn = None
@@ -13,10 +15,16 @@ def login_attempt(username, password):
 		cur = conn.cursor()
 		print('Connected.')
 		print('Trying user {0} and pass {1}.'.format(username, password))
-		cur.execute('SELECT username FROM login where username=\'{0}\' and password=\'{1}\';'.format(username, password))
 
+		cur.execute('SELECT salt_str FROM auth where username=\'{0}\';'.format(username))
+		salt_str = cur.fetchone()
+
+		pass_try = whirlpool.new(password + salt_str[0])
+		pass_resolve = pass_try.hexdigest()
+		print(pass_resolve)
+
+		cur.execute('SELECT username FROM login where username=\'{0}\' and password=\'{1}\';'.format(username, pass_resolve))
 		user = cur.fetchone()
-		#print(user[0])
 
 		cur.close()
 		conn.close()
@@ -39,9 +47,11 @@ def login(attempt, username):
 
 			cur.execute('DELETE FROM auth WHERE username=\'{0}\';'.format(username))
 			conn.commit()
+
 			code = generate_token()
 			cur.execute('INSERT INTO auth (username, auth_code) VALUES (\'{0}\', \'{1}\');'.format(username, code))
 			conn.commit()
+
 			cur.close()
 			conn.close()
 		except (Exception, psycopg2.DatabaseError) as error:
@@ -59,6 +69,7 @@ def sign_up_attempt(username, password, email):
 	user = None
 	email_check = None
 	code = None
+
 	try:
 		params = config()
 		print('Connecting to login')
@@ -83,12 +94,26 @@ def sign_up_attempt(username, password, email):
 			return False
 
 		else:
-			#print(username, password, email)
-			cur.execute('INSERT INTO login (username, password, email) VALUES (\'{0}\', \'{1}\', \'{2}\');'.format(username, password, email))
+			salt = grind_salt()
+			while salt_exists(salt):
+				salt = grind_salt() # again
+				print('Salt exists - resalting')
+
+			else:
+				cur.execute('INSERT INTO auth (salt_str) VALUES (\'{0}\':'.format(salt))
+				conn.commit()
+
+			hasher = whirlpool.new(password + salt)
+			hasher_digest = hasher.hexdigest()
+			print(hasher_digest)
+
+			cur.execute('INSERT INTO login (username, password, email) VALUES (\'{0}\', \'{1}\', \'{2}\');'.format(username, hasher_digest, email))
 			conn.commit()
+
 			code = generate_token()
 			cur.execute('INSERT INTO auth (username, auth_code) VALUES (\'{0}\', \'{1}\');'.format(username, code))
 			conn.commit()
+
 			cur.close()
 			conn.close()
 			print('Database connection closed.')
@@ -187,6 +212,29 @@ def auth_attempt(username, code):
 		if conn is not None:
 			conn.close()
 			print('Database connection closed.')
+
+def salt_exists(salt_str):
+	conn = None
+	try:
+		params = config()
+		conn = psycopg2.connect(**params)
+
+		cur = conn.cursor()
+		cur.execute('SELECT salt_str FROM auth WHERE salt_str=\'{0}\';'.format(salt_str))
+		salt_grinder = cur.fetchone()
+
+		if salt_str != salt_grinder[0]:
+			return False
+
+		else: 
+			return True
+	except (Exception, psycopg2.DatabaseError) as error:
+		print(error)
+	else:
+		if conn is not None:
+			conn.close()
+			print('Database connection closed.')
+
 
 
 
