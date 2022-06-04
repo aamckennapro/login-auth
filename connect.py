@@ -100,7 +100,7 @@ def sign_up_attempt(username, password, email):
 				print('Salt exists - resalting')
 
 			else:
-				cur.execute('INSERT INTO auth (salt_str) VALUES (\'{0}\':'.format(salt))
+				cur.execute('INSERT INTO auth (salt_str) VALUES (\'{0}\'):'.format(salt))
 				conn.commit()
 
 			hasher = whirlpool.new(password + salt)
