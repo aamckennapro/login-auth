@@ -18,10 +18,11 @@ def login_attempt(username, password):
 
 		cur.execute('SELECT salt_str FROM auth where username=\'{0}\';'.format(username))
 		salt_str = cur.fetchone()
+		print(salt_str)
 
-		pass_raw = b"{0}{1}".format(password, salt_str[0])
+		pass_raw = "{0}{1}".format(password, salt_str[0])
 
-		pass_try = whirlpool.new(pass_raw)
+		pass_try = whirlpool.new(pass_raw.encode('utf-8'))
 		pass_resolve = pass_try.hexdigest()
 		print(pass_resolve)
 
@@ -97,31 +98,29 @@ def sign_up_attempt(username, password, email):
 
 		else:
 			salt = grind_salt()
+
 			while salt_exists(salt):
 				salt = grind_salt() # again
 				print('Salt exists - resalting')
 
 			else:
-				cur.execute('INSERT INTO auth (salt_str) VALUES (\'{0}\');'.format(salt))
+				pass_raw = "{0}{1}".format(password, salt)
+
+				hasher = whirlpool.new(pass_raw.encode('utf-8'))
+				hasher_digest = hasher.hexdigest()
+				print(hasher_digest)
+
+				cur.execute('INSERT INTO login (username, password, email) VALUES (\'{0}\', \'{1}\', \'{2}\');'.format(username, hasher_digest, email))
 				conn.commit()
 
-			pass_raw = b"{0}{1}".format(password, salt)
+				code = generate_token()
+				cur.execute('INSERT INTO auth (username, auth_code, salt_str) VALUES (\'{0}\', \'{1}\', \'{2}\');'.format(username, code, salt))
+				conn.commit()
 
-			hasher = whirlpool.new(pass_raw)
-			hasher_digest = hasher.hexdigest()
-			print(hasher_digest)
-
-			cur.execute('INSERT INTO login (username, password, email) VALUES (\'{0}\', \'{1}\', \'{2}\');'.format(username, hasher_digest, email))
-			conn.commit()
-
-			code = generate_token()
-			cur.execute('INSERT INTO auth (username, auth_code) VALUES (\'{0}\', \'{1}\');'.format(username, code))
-			conn.commit()
-
-			cur.close()
-			conn.close()
-			print('Database connection closed.')
-			return True
+				cur.close()
+				conn.close()
+				print('Database connection closed.')
+				return True
 	except (Exception, psycopg2.DatabaseError) as error:
 		print(error)
 	else:
