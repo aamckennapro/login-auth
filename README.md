@@ -7,9 +7,12 @@ Authentication is required upon login <strong>every time</strong> a login attemp
 the user signs up with. Authentication code is generated after a <strong>successful</strong> login attempt and is six characters in length. Everything is
 currently stored in a local database written in Postgres but could be adapted into another DB. 
 
+Passwords <em>are</em> salted <strong>and</strong> hashed. Salting is done using the Python secrets library, appended at the end of the password string for
+hashing using the Whirlpool algorithm. Whirlpool was selected due to its easy integration in Python, but any hashing algorithm can be implemented using this 
+software (SHA, MD5, etc). A salting algorithm was not implemented due to the relative inaccessibility of them other than full packages of algorithms or implementation 
+of SCRAM (like in tlocke's [SCRAMP](https://github.com/tlocke/scramp))
+
 ## Future Addendums
-- Passwords are <strong>not</strong> currently salted or hashed, which is obviously dangerous for a real implementation. Neither are the auth codes,
-  which are less important but still a security risk.
 - None of the input fields are safe from SQL injections <i>to my knowledge</i> as I have yet to test it, obviously not ideal. 
 - A few of the source files need to be refactored for readability.
 - Documentation.
