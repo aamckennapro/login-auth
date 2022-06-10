@@ -14,6 +14,7 @@ of SCRAM (like in tlocke's [SCRAMP](https://github.com/tlocke/scramp))
 
 ## Future Addendums
 - The email input field is unsafe when it comes to SQL injections (due to the length of the field).
+- Build a beautiful front end for this, putting my design skills to the test (if I have any).
 - Documentation.
 
 ## Tech
